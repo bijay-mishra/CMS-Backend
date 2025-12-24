@@ -1,0 +1,6 @@
+@CMS_Backend_HostAddress = https://localhost:7143
+
+GET {{CMS_Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
