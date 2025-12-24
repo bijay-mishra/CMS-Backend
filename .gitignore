@@ -1,0 +1,20 @@
+# Build Folders
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+
+# Visual Studio files
+.vs/
+*.dbmdl
+*.pdb
+*.cache
+
+# Rider/Resharper
+.idea/
+*.sln.DotSettings.user
+
+# Others
+*.log
+*.vspscc
