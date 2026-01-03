@@ -1,32 +1,28 @@
 ﻿using CMS_Backend.Data;
 using CMS_Backend.Models;
 using CMS_Backend.Models.Entities;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CMS_Backend.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-	[Authorize]
+	[Route("api/[controller]")]
+	[ApiController]
+	[Authorize] 
 	public class CategoryController : ControllerBase
-    {
-        private readonly ApplicationDbContext dbContext;
-        public CategoryController(ApplicationDbContext dbContext)
-        {
-            this.dbContext = dbContext;
-        }
-        [HttpGet]
-        public IActionResult GetAllCategories()
-        {
-            return Ok(dbContext.Categories.ToList());
+	{
+		private readonly ApplicationDbContext dbContext;
 
-        }
-
+		public CategoryController(ApplicationDbContext dbContext)
+		{
+			this.dbContext = dbContext;
+		}
 		[HttpGet]
-
-		[Route("{id:guid}")]
+		public IActionResult GetAllCategories()
+		{
+			return Ok(dbContext.Categories.ToList());
+		}
+		[HttpGet("{id:int}")]
 		public IActionResult GetCategoryById(Guid id)
 		{
 			var category = dbContext.Categories.Find(id);
@@ -47,72 +43,73 @@ namespace CMS_Backend.Controllers
 				data = category
 			});
 		}
-
 		[HttpPost]
-        public IActionResult AddCategory(AddCategoryDto addCategoryDto)
-        {
+		[Authorize(Roles = "admin")]
+		public IActionResult AddCategory(AddCategoryDto addCategoryDto)
+		{
+			var categoryEntity = new Category
+			{
+				Name = addCategoryDto.Name
+			};
 
-            var categoryEntity = new Category()
-            {
-                Name = addCategoryDto.Name,
-                Email = addCategoryDto.Email,
-                Phone = addCategoryDto.Phone,
-                Salary = addCategoryDto.Salary
-            };
+			dbContext.Categories.Add(categoryEntity);
+			dbContext.SaveChanges();
 
-
-
-            dbContext.Categories.Add(categoryEntity);
-            dbContext.SaveChanges();
 			return Ok(new
 			{
 				success = true,
 				message = "Category added successfully",
 				data = categoryEntity
 			});
-
 		}
-        [HttpPut]
-        [Route("{id:guid}")]
-        public IActionResult UpdateCategory(Guid id, UpdateCategoryDto updateCategoryDto)
-        {
-            var category = dbContext.Categories.Find(id);
-            if (category is null)
-            {
-                return NotFound();
-            }
-            category.Name = updateCategoryDto.Name;
-            category.Email = updateCategoryDto.Email;
-            category.Phone = updateCategoryDto.Phone;
-            category.Salary = updateCategoryDto.Salary;
-            dbContext.SaveChanges();
-            return Ok(new
-            {
-                sucess=true,
-                message="Category updated sucessfully",
-                data=category
-            });
+		[HttpPut("{id:guid}")]
+		[Authorize(Roles = "admin")]
+		public IActionResult UpdateCategory(Guid id, UpdateCategoryDto updateCategoryDto)
+		{
+			var category = dbContext.Categories.Find(id);
 
-        }
+			if (category == null)
+			{
+				return NotFound(new
+				{
+					success = false,
+					message = "Category not found"
+				});
+			}
 
-        [HttpDelete]
-        [Route("{id:guid}")]
-        public IActionResult DeleteCategory(Guid id)
-        {
-            var category = dbContext.Categories.Find(id);
-            if (category is null)
-            {
-                return NotFound();
-            }
-            dbContext.Categories.Remove(category);
-            dbContext.SaveChanges();
-            return Ok(new
-            {
-                sucess = true,
-                message = "Category deleted sucessfully"
+			category.Name = updateCategoryDto.Name;
+			dbContext.SaveChanges();
+
+			return Ok(new
+			{
+				success = true,
+				message = "Category updated successfully",
+				data = category
 			});
+		}
+		[HttpDelete("{id:int}")]
+		[Authorize(Roles = "admin")]
+		public IActionResult DeleteCategory(Guid id)
+		{
+			var category = dbContext.Categories.Find(id);
 
-               
-        }
-    }
+			if (category == null)
+			{
+				return NotFound(new
+				{
+					success = false,
+					message = "Category not found"
+				});
+			}
+
+			dbContext.Categories.Remove(category);
+			dbContext.SaveChanges();
+
+			return Ok(new
+			{
+				success = true,
+				message = "Category deleted successfully"
+			});
+		}
+	}
 }
